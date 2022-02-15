@@ -160,6 +160,13 @@ public class MenuUIController : MonoBehaviour
 
             yield return moveUp.WaitForCompletion();
 
+            // Shake
+            if (_popUp.name.Equals("Play Container"))
+            {
+                Tween shake = rectTransform.DOShakePosition(0.4f, 20, 30, 90, true, false).SetEase(Ease.OutBack); ;
+                yield return shake.WaitForCompletion();
+            }
+
             // Enable canvas
             canvasGroup.interactable = true;
 
