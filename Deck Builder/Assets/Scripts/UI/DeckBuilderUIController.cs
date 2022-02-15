@@ -7,11 +7,21 @@ using TMPro;
 public class DeckBuilderUIController : MonoBehaviour
 {
     #region Variables
+    [Header("UI Elements")]
+    [SerializeField]
+    GameObject deckBuilderScreen;
+    [SerializeField]
+    GameObject decksContainer;
+    [Space]
     [Header("Header")]
-    /*[SerializeField]
+    [SerializeField]
     Button saveDeckButton;
     [SerializeField]
-    Button backButton;*/
+    Button backButton;
+    [Space]
+    [Header("Your Decks")]
+    [SerializeField]
+    Button createDeckButton;
     [Space]
     [Header("My Deck")]
     /*[SerializeField]
@@ -47,16 +57,22 @@ public class DeckBuilderUIController : MonoBehaviour
     #endregion
 
     #region Methods
-    public void Open()
+    public void Display()
     {
-
+        deckBuilderScreen.SetActive(true);
+        decksContainer.SetActive(true);
     }
 
     void SubscribeButtons()
     {
         // Header
-        /*saveDeckButton.onClick.AddListener(SaveDeckButtonPressed);
+        //saveDeckButton.onClick.AddListener(SaveDeckButtonPressed);
         backButton.onClick.AddListener(BackButtonPressed);
+
+        // Your Decks
+        createDeckButton.onClick.AddListener(CreateDeckButtonPressed);
+
+        /*
 
         // My Deck
 
@@ -69,19 +85,36 @@ public class DeckBuilderUIController : MonoBehaviour
 
     void InitializeVariables()
     {
+        //myDecks = new List<CardUI>();
         myDeckCards = new List<CardUI>();
         myCollectionCards = new List<CardUI>();
     }
 
     #region Header
-    void SaveDeckButtonPressed()
-    {
-
-    }
-
     void BackButtonPressed()
     {
+        // Play Sound
+        UIManager.Instance.PlayBackSelectedSFX();
 
+        // Close Deck Builder
+        deckBuilderScreen.SetActive(false);
+
+        // Display Menu
+        UIManager.Instance.menuUIController.Display();
+    }
+
+    void SaveDeckButtonPressed()
+    {
+        // Play Sound
+        UIManager.Instance.PlayOptionSelectedSFX();
+    }
+    #endregion
+
+    #region Your Decks
+    void CreateDeckButtonPressed()
+    {
+        // Play Sound
+        UIManager.Instance.PlayOptionSelectedSFX();
     }
     #endregion
 

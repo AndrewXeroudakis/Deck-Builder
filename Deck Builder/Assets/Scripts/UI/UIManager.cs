@@ -20,7 +20,7 @@ public class UIManager : Singleton<UIManager>
     void Start()
     {
         // Open Main Menu
-        menuUIController.OpenMainMenu();
+        menuUIController.Display();
     }
     #endregion
 

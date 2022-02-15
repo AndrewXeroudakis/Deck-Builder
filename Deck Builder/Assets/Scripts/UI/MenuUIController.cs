@@ -96,7 +96,7 @@ public class MenuUIController : MonoBehaviour
         musicVolumeSlider.onValueChanged.AddListener(delegate { SetVolume(MUSIC_VOLUME_KEY, musicVolumeSlider.value); });
     }
 
-    public void OpenMainMenu()
+    public void Display()
     {
         // Unause
         Time.timeScale = 1;
@@ -221,7 +221,7 @@ public class MenuUIController : MonoBehaviour
         menuContainer.SetActive(false);
 
         // Open Deck Builder UI
-        UIManager.Instance.deckBuilderUIController.Open();
+        UIManager.Instance.deckBuilderUIController.Display();
     }
     #endregion
 
