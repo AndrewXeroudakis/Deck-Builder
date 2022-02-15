@@ -47,6 +47,11 @@ public class DeckBuilderUIController : MonoBehaviour
     #endregion
 
     #region Methods
+    public void Open()
+    {
+
+    }
+
     void SubscribeButtons()
     {
         // Header

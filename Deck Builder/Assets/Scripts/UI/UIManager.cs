@@ -7,9 +7,8 @@ public class UIManager : Singleton<UIManager>
 {
     #region Variables
     public DeckBuilderUIController deckBuilderUIController;
+    public MenuUIController menuUIController;
     public LoadingUIController loadingUIController;
-    // public HomeUIController homeUIController;
-
     #endregion
 
     #region Unity Callbacks
@@ -21,19 +20,19 @@ public class UIManager : Singleton<UIManager>
     void Start()
     {
         // Open Main Menu
-        //homeUIController.OpenMainMenu();
+        menuUIController.OpenMainMenu();
     }
     #endregion
 
     #region Methods
     public void PlayOptionSelectedSFX()
     {
-        //AudioManager.Instance.PlaySound("MenuClick");
+        AudioManager.Instance.PlaySound("MenuClick");
     }
 
     public void PlayBackSelectedSFX()
     {
-        //AudioManager.Instance.PlaySound("MenuBack");
+        AudioManager.Instance.PlaySound("MenuBack");
     }
     #endregion
 }
