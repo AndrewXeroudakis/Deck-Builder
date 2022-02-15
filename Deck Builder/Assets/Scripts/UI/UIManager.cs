@@ -6,11 +6,10 @@ using System;
 public class UIManager : Singleton<UIManager>
 {
     #region Variables
-    //public MenuUIController menuUIController;
-    //public GameUIController gameUIController;
+    public DeckBuilderUIController deckBuilderUIController;
+    public LoadingUIController loadingUIController;
+    // public HomeUIController homeUIController;
 
-    [SerializeField]
-    CanvasGroup canvasGroup;
     #endregion
 
     #region Unity Callbacks
@@ -22,7 +21,7 @@ public class UIManager : Singleton<UIManager>
     void Start()
     {
         // Open Main Menu
-        //menuUIController.OpenMainMenu();
+        //homeUIController.OpenMainMenu();
     }
     #endregion
 
