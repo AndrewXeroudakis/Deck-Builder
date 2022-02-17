@@ -11,7 +11,7 @@ public class CardUI : Draggable
     // Fields
     string id;
     public string ID { get { return id; } private set { id = value; } }
-    string name;
+    new string name;
     public string Name { get { return name; } private set { name = value; } }
     string type;
     public string Type { get { return type; } private set { type = value; } }

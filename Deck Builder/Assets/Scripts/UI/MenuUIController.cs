@@ -63,6 +63,11 @@ public class MenuUIController : MonoBehaviour
         SubscribeButtons();
         SubscribeEvents();
     }
+
+    private void Start()
+    {
+        menuMusic = AudioManager.Instance.PlayMusic("MenuMusic");
+    }
     #endregion
 
     #region Methods
