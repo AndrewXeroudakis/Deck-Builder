@@ -1,28 +1,184 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 /*using PokemonTcgSdk;
 using PokemonTcgSdk.Models;*/
 using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class WebManager : Singleton<WebManager>
 {
     #region Variables
+    [Header("Base Url to download json from")]
+    public string baseURL = "https://api.pokemontcg.io/v2/cards";
+
+    [Header("The name of the folder we want to save the json to")]
+    public string dataFolderName = "data";
+
+    [Header("The name of the folder we want to save the images to")]
+    public string imagesFolderName = "images";
+
+    [Space]
+    [Header("Downloaded data")]
+    [SerializeField]
+    private Root dataRoot;
+    public Root DataRoot { get { return dataRoot; } private set { dataRoot = value; } }
+
+    static private readonly string baseSetDataName = "baseSet";
     static private readonly string APIKey = "40add4bd-38c9-4758-a962-ea9cf3f4831b";
+
+    /*[HideInInspector]
+    public bool downloadingImages;*/
     #endregion
 
     #region Unity Callbacks
     protected override void Awake()
     {
         base.Awake();
+
+        SaveLoadManager.CreatePathForData(dataFolderName, imagesFolderName);
     }
     #endregion
 
     #region Methods
+    UnityWebRequest SetupRequest(string _url, string _method, object _body)
+    {
+        // Set request body
+        string bodyString = null;
+        if (_body is string)
+            bodyString = (string)_body;
+        else if (_body != null)
+            bodyString = JsonUtility.ToJson(_body);
+
+        UnityWebRequest webRequest = new UnityWebRequest();
+        webRequest.url = _url;
+        webRequest.method = _method;
+        webRequest.downloadHandler = new DownloadHandlerBuffer();
+        webRequest.uploadHandler = new UploadHandlerRaw(string.IsNullOrEmpty(bodyString) ? null : Encoding.UTF8.GetBytes(bodyString));
+        //webRequest.SetRequestHeader("Accept", "application/json");
+        webRequest.SetRequestHeader("Content-Type", "application/json");
+        webRequest.SetRequestHeader("X-Api-Key", APIKey);
+
+        return webRequest;
+    }
+
+    // Gets All Base set card data
+    IEnumerator GetJsonData()
+    {
+        // Display Loading Screen
+        UIManager.Instance.loadingUIController.DisplayLoadingScreen(true);
+
+        // Calculate seconds to download
+        System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+        stopWatch.Start();
+
+        UnityWebRequest webRequest = SetupRequest(baseURL + "?q=set.id:base1&q=supertype:Pokemon&pageSize=100", UnityWebRequest.kHttpVerbGET, null);
+
+        yield return webRequest.SendWebRequest();
+
+        if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
+        {
+            Debug.LogError(webRequest.error);
+
+            stopWatch.Stop();
+            TimeSpan timeSpan = stopWatch.Elapsed;
+            Debug.Log("Failed to download data after " + (float)timeSpan.TotalSeconds + " seconds");
+
+            yield return "fail";
+        }
+        else
+        {
+            string jsonData = webRequest.downloadHandler.text;
+            SaveLoadManager.SaveStringAsJsonFile(jsonData, baseSetDataName, true);
+
+            stopWatch.Stop();
+            TimeSpan timeSpan = stopWatch.Elapsed;
+            Debug.Log("Downloaded Data in " + (float)timeSpan.TotalSeconds + " seconds");
+
+            // Load data
+            LoadDataLocally();
+
+            // Hide Loading Screen
+            UIManager.Instance.loadingUIController.DisplayLoadingScreen(false);
+
+            // Instance my card collection and download images
+            UIManager.Instance.deckBuilderUIController.InstantiateMyCardCollection();
+
+            yield return "success";
+        }
+        yield break;
+    }
+
+    IEnumerator GetImage(string _imgUrl, string _id)
+    {
+        using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(_imgUrl))
+        {
+            yield return uwr.SendWebRequest();
+
+            if (uwr.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError(uwr.error);
+            }
+            else
+            {
+                byte[] bytes = ((DownloadHandlerTexture)uwr.downloadHandler).data;
+                SaveLoadManager.SaveImageData(bytes, _id, SaveLoadManager.Ext.JPG); //Path.GetFileNameWithoutExtension(_imgUrl)
+            }
+        }
+    }
+
+    public IEnumerator GetImage(string _imgUrl, string _id, Action<Texture2D> _action)
+    {
+        using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(_imgUrl))
+        {
+            yield return uwr.SendWebRequest();
+
+            if (uwr.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError(uwr.error);
+            }
+            else
+            {
+                // Get downloaded asset bundle
+                Texture2D texture = DownloadHandlerTexture.GetContent(uwr);
+                _action?.Invoke(texture);
+
+                byte[] bytes = ((DownloadHandlerTexture)uwr.downloadHandler).data;
+                SaveLoadManager.SaveImageData(bytes, _id, SaveLoadManager.Ext.JPG);
+            }
+        }
+    }
+
+    public void DownloadData()
+    {
+        // Get json and save it locally
+        StartCoroutine(GetJsonData());
+    }
+
+    public void LoadDataLocally()
+    {
+        string jsonData = SaveLoadManager.LoadDataJsonAsString(baseSetDataName);
+        dataRoot = JsonUtility.FromJson<Root>(jsonData);
+    }
+
+    /*public void DownloadImages()
+    {
+        if (dataRoot.data == null)
+            return; // failed reading json
+
+        // Download images
+        foreach (Datum datum in dataRoot.data)
+        {
+            if (!string.IsNullOrWhiteSpace(datum.images.small))
+            {
+                StartCoroutine(GetImage(datum.images.small, datum.id));
+            }
+        }
+    }*/
+
     //public void GetCards()
-    public void RequestImage(string _url, RawImage _rawImage)
+    /*public void RequestImage(string _url, RawImage _rawImage)
     {
         StartCoroutine(DownloadImage(_url, _rawImage));
     }
@@ -44,35 +200,60 @@ public class WebManager : Singleton<WebManager>
             _rawImage.texture = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
             _rawImage.enabled = true;
         }
-    }
+    }*/
     #endregion
 }
 
-#region Cards
-public class Ability
-{
-    public string name { get; set; }
-    public string text { get; set; }
-    public string type { get; set; }
-}
 
-public class Attack
+#region Data casting
+[Serializable]
+public class Root
 {
-    public string name { get; set; }
-    public List<string> cost { get; set; }
-    public int convertedEnergyCost { get; set; }
-    public string damage { get; set; }
-    public string text { get; set; }
-}
-
-public class Weakness
-{
-    public string type { get; set; }
-    public string value { get; set; }
+    public List<Datum> data;
+    public int page;
+    public int pageSize;
+    public int count;
+    public int totalCount;
 }
 
 [Serializable]
-public class Resistance
+public class Datum
+{
+    public string id;
+    public string name;
+    public string supertype;
+    public List<string> subtypes;
+    public string hp;
+    public List<string> types;
+    public List<string> evolvesTo;
+    public List<string> rules;
+    public List<Attack> attacks;
+    public List<Weakness> weaknesses;
+    public List<string> retreatCost;
+    public int convertedRetreatCost;
+    public Set set;
+    public string number;
+    public string artist;
+    public string rarity;
+    public List<int> nationalPokedexNumbers;
+    public Legalities legalities;
+    public Images images;
+    public Tcgplayer tcgplayer;
+    public Cardmarket cardmarket;
+}
+
+[Serializable]
+public class Attack
+{
+    public string name;
+    public List<string> cost;
+    public int convertedEnergyCost;
+    public string damage;
+    public string text;
+}
+
+[Serializable]
+public class Weakness
 {
     public string type;
     public string value;
@@ -82,6 +263,7 @@ public class Resistance
 public class Legalities
 {
     public string unlimited;
+    public string expanded;
 }
 
 [Serializable]
@@ -112,15 +294,6 @@ public class Set
 public class Holofoil
 {
     public double low;
-    public int mid;
-    public double high;
-    public double market;
-}
-
-[Serializable]
-public class ReverseHolofoil
-{
-    public double low;
     public double mid;
     public double high;
     public double market;
@@ -131,20 +304,6 @@ public class ReverseHolofoil
 public class Prices
 {
     public Holofoil holofoil;
-    public ReverseHolofoil reverseHolofoil;
-    public double averageSellPrice;
-    public double lowPrice;
-    public double trendPrice;
-    public double reverseHoloSell;
-    public double reverseHoloLow;
-    public double reverseHoloTrend;
-    public double lowPriceExPlus;
-    public double avg1;
-    public double avg7;
-    public double avg30;
-    public double reverseHoloAvg1;
-    public double reverseHoloAvg7;
-    public double reverseHoloAvg30;
 }
 
 [Serializable]
@@ -162,43 +321,5 @@ public class Cardmarket
     public string updatedAt;
     public Prices prices;
 }
-
-[Serializable]
-public class Datum
-{
-    public string id;
-    public string name;
-    public string supertype;
-    public List<string> subtypes;
-    public string level;
-    public string hp;
-    public List<string> types;
-    public string evolvesFrom;
-    public List<Ability> abilities;
-    public List<Attack> attacks;
-    public List<Weakness> weaknesses;
-    public List<Resistance> resistances;
-    public List<string> retreatCost;
-    public int convertedRetreatCost;
-    public Set set;
-    public string number;
-    public string artist;
-    public string rarity;
-    public string flavorText;
-    public List<int> nationalPokedexNumbers;
-    public Legalities legalities;
-    public Images images;
-    public Tcgplayer tcgplayer;
-    public Cardmarket cardmarket;
-}
-
-[Serializable]
-public class Root
-{
-    public List<Datum> data;
-    public int page;
-    public int pageSize;
-    public int count;
-    public int totalCount;
-}
 #endregion
+

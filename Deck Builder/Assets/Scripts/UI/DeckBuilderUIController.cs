@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 public class DeckBuilderUIController : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class DeckBuilderUIController : MonoBehaviour
     GameObject deckBuilderScreen;
     [SerializeField]
     GameObject decksContainer;
+    [SerializeField]
+    GameObject createDeckContainer;
     [Space]
     [Header("Header")]
     [SerializeField]
@@ -34,8 +37,8 @@ public class DeckBuilderUIController : MonoBehaviour
     [SerializeField]
     Transform myCollectionCardsContainer;
     [SerializeField]
-    //TMP_Dropdown orderByDropdown;
-    List<CardUI> myCollectionCards;
+    TMP_Dropdown orderByDropdown;
+    List<CardUI> myCardCollection;
     [Space]
     [Header("Save Deck")]
     /*[SerializeField]
@@ -72,13 +75,13 @@ public class DeckBuilderUIController : MonoBehaviour
         // Your Decks
         createDeckButton.onClick.AddListener(CreateDeckButtonPressed);
 
-        /*
+        
 
         // My Deck
 
         // My Collection
         orderByDropdown.onValueChanged.AddListener(delegate {OrderByDropdownValueChanged();}); 
-
+/*
         // Save Deck
         saveYesButton.onClick.AddListener(SaveYesButtonPressed);*/
     }
@@ -87,7 +90,7 @@ public class DeckBuilderUIController : MonoBehaviour
     {
         //myDecks = new List<CardUI>();
         myDeckCards = new List<CardUI>();
-        myCollectionCards = new List<CardUI>();
+        myCardCollection = new List<CardUI>();
     }
 
     #region Header
@@ -115,20 +118,53 @@ public class DeckBuilderUIController : MonoBehaviour
     {
         // Play Sound
         UIManager.Instance.PlayOptionSelectedSFX();
+
+        // Hide decks container
+        decksContainer.SetActive(false);
+
+        // Instantiate Card Collection
+        if (myCardCollection.Count <= 0)
+            InstantiateMyCardCollection();
+
+        // Display create deck container
+        createDeckContainer.SetActive(true);
     }
     #endregion
 
     #region My Collection
     public void InstantiateMyCardCollection()
     {
-        myCollectionCards = DeckManager.Instance.InstantiateMyCardCollection(cardUIPrefab, myCollectionCardsContainer);
+        myCardCollection = DeckManager.Instance.InstantiateMyCardCollection(cardUIPrefab, myCollectionCardsContainer);
     }
 
     void OrderByDropdownValueChanged()
     {
-        // Switch dropdown values
-        // Deck Builder OrderBy
-        //Debug.Log(orderByDropdown.value);
+        int index = orderByDropdown.value;
+        Debug.Log(index);
+        if (index == 0)
+        {
+            myCardCollection = myCardCollection.OrderBy(x => x.Name).ToList();
+            for (var i = myCardCollection.Count - 1; i >= 0; i--)
+                myCardCollection[i].transform.SetSiblingIndex(0);
+        }
+        else if (index == 1)
+        {
+            myCardCollection = myCardCollection.OrderBy(x => x.Type).ToList();
+            for (var i = myCardCollection.Count - 1; i >= 0; i--)
+                myCardCollection[i].transform.SetSiblingIndex(0);
+        }
+        else if (index == 2)
+        {
+            myCardCollection = myCardCollection.OrderBy(x => x.Hp).ToList();
+            for (var i = myCardCollection.Count - 1; i >= 0; i--)
+                myCardCollection[i].transform.SetSiblingIndex(0);
+        }
+        else if (index == 3)
+        {
+            myCardCollection = myCardCollection.OrderBy(x => x.Rarity).ToList();
+            for (var i = myCardCollection.Count - 1; i >= 0; i--)
+                myCardCollection[i].transform.SetSiblingIndex(0);
+        }
     }
     #endregion
 
