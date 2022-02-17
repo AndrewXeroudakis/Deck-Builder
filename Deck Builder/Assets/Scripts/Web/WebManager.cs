@@ -321,5 +321,12 @@ public class Cardmarket
     public string updatedAt;
     public Prices prices;
 }
+
+[Serializable]
+public class Deck
+{
+    public string id;
+    public List<string> cardIds;
+}
 #endregion
 

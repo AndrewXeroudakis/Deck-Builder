@@ -1,5 +1,6 @@
 /*using PokemonTcgSdk;
 using PokemonTcgSdk.Models;*/
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,16 +31,6 @@ public class DeckManager : Singleton<DeckManager>
         // Check if data
         if (WebManager.Instance.DataRoot == null)
             WebManager.Instance.DownloadData();
-
-        // Get all pokemon cards of the base set
-
-            /*Dictionary<string, string> query = new Dictionary<string, string>()
-            {
-                { "name", "Charizard" },
-                { "set", "Base" }
-            };
-            cards = Card.Get(query);
-            Debug.Log(cards.Cards.Count);*/
     }
 
     // Instantiate My Collection
@@ -51,17 +42,11 @@ public class DeckManager : Singleton<DeckManager>
         {
             GameObject newCardUI = Instantiate(_prefab, _parent.position, _parent.rotation, _parent);
             CardUI cardUI = newCardUI.GetComponent<CardUI>();
-            cardUI.SetFields(pokemonCard.id, pokemonCard.name, pokemonCard.types[0], pokemonCard.hp, pokemonCard.rarity, pokemonCard.images.small);
+            cardUI.SetFields(pokemonCard.id, pokemonCard.name, pokemonCard.types[0], Int32.Parse(pokemonCard.hp), pokemonCard.rarity, pokemonCard.images.small, true);
             cardList.Add(cardUI);
         }
 
         return cardList;
     }
-
-    // Order By Type
-    // Order By HP
-    // Order By Rarity
-    // Save Player Decks
-    // Load Player Decks
     #endregion
 }

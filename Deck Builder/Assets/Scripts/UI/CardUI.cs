@@ -5,6 +5,7 @@ public class CardUI : Draggable
 {
     #region Variables
     // Components
+    Button button;
     RawImage rawImage;
 
     // Fields
@@ -14,12 +15,13 @@ public class CardUI : Draggable
     public string Name { get { return name; } private set { name = value; } }
     string type;
     public string Type { get { return type; } private set { type = value; } }
-    string hp;
-    public string Hp { get { return hp; } private set { hp = value; } }
+    int hp;
+    public int Hp { get { return hp; } private set { hp = value; } }
     string rarity;
     public string Rarity { get { return rarity; } private set { rarity = value; } }
     string imageURL;
     public string ImageURL { get { return imageURL; } private set { imageURL = value; } }
+    public bool isInMyCollection;
     #endregion
 
     #region Unity Callbacks
@@ -37,8 +39,7 @@ public class CardUI : Draggable
     #endregion
 
     #region Methods
-    //public void SetID(string _id) => id = _id;
-    public void SetFields(string _id, string _name, string _type, string _hp, string _rarity, string _imageURL)
+    public void SetFields(string _id, string _name, string _type, int _hp, string _rarity, string _imageURL, bool _isInMyCollection)
     {
         id = _id;
         name = _name;
@@ -46,13 +47,18 @@ public class CardUI : Draggable
         hp = _hp;
         rarity = _rarity;
         imageURL = _imageURL;
+        isInMyCollection = _isInMyCollection;
     }
-
-    //public void SetImageURL(string _imageUrl) => imageURL = _imageUrl;
 
     void GetComponents()
     {
         rawImage = GetComponentInChildren<RawImage>();
+        button = GetComponent<Button>();
+
+        if (isInMyCollection)
+            button.onClick.AddListener(delegate { UIManager.Instance.deckBuilderUIController.AddCardToMyDeck(this); });
+        else
+            button.onClick.AddListener(delegate { UIManager.Instance.deckBuilderUIController.RemoveCardFromMyDeck(this); });
     }
 
     public void SetImage(string _imgID)
